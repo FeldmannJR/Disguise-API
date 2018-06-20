@@ -1,0 +1,7 @@
+name: Disguise
+author: Feldmann
+main: me.feldmannjr.disguise.DisguisePlugin
+version: 1
+commands:
+  disguise:
+softdepend: [PacketListenerApi]
