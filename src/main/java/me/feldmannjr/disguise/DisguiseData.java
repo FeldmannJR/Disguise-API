@@ -29,18 +29,11 @@ public abstract class DisguiseData {
 
     }
 
-    FieldResolver spawnResolver = null;
-    NMSClassResolver nmsResolver = null;
 
     public void sendSpawn(Player p)
     {
-        if (nmsResolver == null) {
-            nmsResolver = new NMSClassResolver();
-        }
-        if (spawnResolver == null) {
-            spawnResolver = new FieldResolver(nmsResolver.resolveSilent("PacketPlayOutSpawnEntityLiving"));
-        }
-        Object o = DisguisePlugin.nms.buildSpawnPacket(p, this);
+
+        Object o = DisguisePlugin.nms.buildSpawnPacket(player, this);
         DisguisePlugin.nms.sendPacket(p, o);
     }
 

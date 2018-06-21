@@ -12,6 +12,8 @@ import org.bukkit.util.Vector;
 import org.inventivetalent.packetlistener.reflection.resolver.FieldResolver;
 import org.inventivetalent.packetlistener.reflection.resolver.minecraft.NMSClassResolver;
 
+import java.util.Map;
+
 public class v1_8_R3 extends PluginVersion {
     FieldResolver spawnResolver = null;
     NMSClassResolver nmsResolver = null;
@@ -45,7 +47,7 @@ public class v1_8_R3 extends PluginVersion {
             spawnResolver.resolveSilent("f").set(spawn, v(player.getVelocity().getX()));
             spawnResolver.resolveSilent("g").set(spawn, v(player.getVelocity().getY()));
             spawnResolver.resolveSilent("h").set(spawn, v(player.getVelocity().getZ()));
-            DataWatcher watcher = new DataWatcher(null);
+            DataWatcher watcher = (DataWatcher) convertToNmsDatawatcher(data.getDataWatcher());
             spawnResolver.resolveSilent("l").set(spawn, watcher);//Data watcher
 
         } catch (IllegalAccessException e) {
@@ -80,24 +82,66 @@ public class v1_8_R3 extends PluginVersion {
         return false;
     }
 
+    FieldResolver dataWatcherSolver;
+
     public Object convertToNmsDatawatcher(DisguiseWatcher watcher)
     {
+        if (dataWatcherSolver == null) {
+            dataWatcherSolver = new FieldResolver(nmsResolver.resolveSilent("DataWatcher"));
+        }
+
         DataWatcher nmswatcher = new DataWatcher(null);
+        Map<Integer, DataWatcher.WatchableObject> map;
+        try {
+            map = (Map<Integer, DataWatcher.WatchableObject>) dataWatcherSolver.resolveSilent("d").get(nmswatcher);
+        } catch (IllegalAccessException e) {
+            return nmswatcher;
+        }
 
         for (DisguiseWatcher.WatcherValue value : watcher.getValues().values()) {
-            Object obj;
-            if (value.getType() == DisguiseWatcher.WatcherValueType.ITEMSTACK) {
-                obj = CraftItemStack.asNMSCopy((org.bukkit.inventory.ItemStack) value.getValue());
-            } else if (value.getType() == DisguiseWatcher.WatcherValueType.BLOCKPOS) {
-                Vector vec = (Vector) value.getValue();
-                obj = new BlockPosition(vec.getBlockX(), vec.getY(), vec.getZ());
-            } else if (value.getType() == DisguiseWatcher.WatcherValueType.ROTATIONS) {
-                DisguiseWatcher.Rotation r = (DisguiseWatcher.Rotation) value.getValue();
-                obj = new Vector3f(r.getX(), r.getY(), r.getZ());
-            } else {
-                obj = value.getValue();
+            Object obj = value.getValue();
+            int type = 0;
+            if (value.getValue() == null) {
+                continue;
             }
-            nmswatcher.watch(value.getKey(), obj);
+            //System.out.println("ID:" + value.getKey() + " TYPE:" + value.getType() + " VALUE:" + value.getValue().getClass().getSimpleName());
+            switch (value.getType()) {
+                case BYTE:
+                    type = 0;
+                    break;
+                case SHORT:
+                    type = 1;
+                    break;
+                case INTEGER:
+                    type = 2;
+                    break;
+                case FLOAT:
+                    type = 3;
+                    break;
+                case STRING:
+                    type = 4;
+                    break;
+                case ITEMSTACK:
+                    obj = CraftItemStack.asNMSCopy((org.bukkit.inventory.ItemStack) value.getValue());
+                    type = 5;
+                    break;
+                case BLOCKPOS:
+                    Vector vec = (Vector) value.getValue();
+                    obj = new BlockPosition(vec.getBlockX(), vec.getY(), vec.getZ());
+                    type = 6;
+                    break;
+                case ROTATIONS:
+                    DisguiseWatcher.Rotation r = (DisguiseWatcher.Rotation) value.getValue();
+                    obj = new Vector3f(r.getX(), r.getY(), r.getZ());
+                    type = 7;
+                    break;
+                default:
+                    obj = value.getValue();
+                    break;
+
+            }
+
+            map.put(value.getKey(), new DataWatcher.WatchableObject(type, value.getKey(), obj));
 
         }
         return nmswatcher;
