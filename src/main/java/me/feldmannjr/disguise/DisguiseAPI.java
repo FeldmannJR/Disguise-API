@@ -20,12 +20,14 @@ public class DisguiseAPI {
     public static void setDisguise(Player p, DisguiseData data)
     {
         if (data == null) {
-            disguises.remove(p.getUniqueId());
+            data = disguises.remove(p.getUniqueId());
+            if (data != null) {
+                data.restore();
+            }
         } else {
             disguises.put(p.getUniqueId(), data);
+            data.disguise();
         }
-
-
     }
 
 

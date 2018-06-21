@@ -16,9 +16,12 @@ public class CmdDisguise implements CommandExecutor {
             Player p = (Player) cs;
             if (DisguiseAPI.getDisguise(p.getUniqueId()) != null) {
                 DisguiseAPI.setDisguise(p, null);
+                p.sendMessage("null");
             } else {
                 DisguiseAPI.setDisguise(p, new DisguiseData(p, EntityType.ZOMBIE));
+                p.sendMessage("Zombie");
             }
+
 
         }
         return false;

@@ -8,11 +8,14 @@ import org.inventivetalent.packetlistener.PacketListenerAPI;
 
 public class DisguisePlugin extends JavaPlugin {
 
+    public static PluginVersion nms = null;
+
     @Override
     public void onEnable()
     {
         PacketListenerAPI.addPacketHandler(new PacketListener());
         Bukkit.getPluginCommand("disguise").setExecutor(new CmdDisguise());
+
     }
 
     @Override

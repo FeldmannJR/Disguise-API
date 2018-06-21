@@ -2,8 +2,7 @@ package me.feldmannjr.disguise.listeners;
 
 import me.feldmannjr.disguise.DisguiseAPI;
 import me.feldmannjr.disguise.DisguiseData;
-import net.minecraft.server.v1_8_R3.PacketPlayOutNamedEntitySpawn;
-import net.minecraft.server.v1_8_R3.PacketPlayOutSpawnEntity;
+
 import org.inventivetalent.packetlistener.handler.PacketHandler;
 import org.inventivetalent.packetlistener.handler.ReceivedPacket;
 import org.inventivetalent.packetlistener.handler.SentPacket;
@@ -18,7 +17,7 @@ public class PacketListener extends PacketHandler {
         if (sentPacket.getPlayer() == null) {
             return;
         }
-        if (sentPacket.getPacket() instanceof PacketPlayOutNamedEntitySpawn) {
+        if (sentPacket.getPacketName().equals("PacketPlayOutNamedEntitySpawn")) {
             handleSpawn(sentPacket);
         }
 
@@ -29,10 +28,9 @@ public class PacketListener extends PacketHandler {
 
     }
 
-
     public void handleSpawn(SentPacket pa)
     {
-        PacketPlayOutNamedEntitySpawn packet = (PacketPlayOutNamedEntitySpawn) pa.getPacket();
+
         UUID uid = (UUID) pa.getPacketValue("b");
         DisguiseData data = DisguiseAPI.getDisguise(uid);
         if (data != null) {
