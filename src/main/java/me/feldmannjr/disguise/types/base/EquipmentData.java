@@ -24,11 +24,7 @@ public abstract class EquipmentData extends LivingData {
     public void showEquipment(Player p, boolean remove) {
         if (showPlayerEquipment) {
             if (!useCustomEquipment) {
-                sendEquipmentPacket(p, EquipmentSlot.HAND, getPlayer().getItemInHand());
-                sendEquipmentPacket(p, EquipmentSlot.HEAD, getPlayer().getInventory().getHelmet());
-                sendEquipmentPacket(p, EquipmentSlot.CHEST, getPlayer().getInventory().getChestplate());
-                sendEquipmentPacket(p, EquipmentSlot.LEGS, getPlayer().getInventory().getLeggings());
-                sendEquipmentPacket(p, EquipmentSlot.FEET, getPlayer().getInventory().getBoots());
+                showPlayerEquipment(p);
             } else {
                 sendEquipmentPacket(p, EquipmentSlot.HAND, equipment[0]);
                 sendEquipmentPacket(p, EquipmentSlot.HEAD, equipment[4]);
@@ -46,6 +42,23 @@ public abstract class EquipmentData extends LivingData {
             }
 
         }
+    }
+
+    public void showPlayerEquipment(Player p) {
+        sendEquipmentPacket(p, EquipmentSlot.HAND, getPlayer().getItemInHand());
+        sendEquipmentPacket(p, EquipmentSlot.HEAD, getPlayer().getInventory().getHelmet());
+        sendEquipmentPacket(p, EquipmentSlot.CHEST, getPlayer().getInventory().getChestplate());
+        sendEquipmentPacket(p, EquipmentSlot.LEGS, getPlayer().getInventory().getLeggings());
+        sendEquipmentPacket(p, EquipmentSlot.FEET, getPlayer().getInventory().getBoots());
+    }
+
+    @Override
+    public void restore() {
+        super.restore();
+        for (Player p : getSeeing()) {
+            showPlayerEquipment(p);
+        }
+
     }
 
     private void sendEquipmentPacket(Player p, EquipmentSlot slot, ItemStack it) {
