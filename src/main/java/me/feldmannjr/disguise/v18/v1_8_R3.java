@@ -6,6 +6,7 @@ import net.minecraft.server.v1_8_R3.EntityTrackerEntry;
 import net.minecraft.server.v1_8_R3.IntHashMap;
 import net.minecraft.server.v1_8_R3.ItemStack;
 import net.minecraft.server.v1_8_R3.Packet;
+import net.minecraft.server.v1_8_R3.PacketPlayOutAttachEntity;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntityEquipment;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntityMetadata;
@@ -13,12 +14,13 @@ import net.minecraft.server.v1_8_R3.PacketPlayOutNamedEntitySpawn;
 import net.minecraft.server.v1_8_R3.PacketPlayOutSpawnEntityLiving;
 import net.minecraft.server.v1_8_R3.Vector3f;
 
-import me.feldmannjr.disguise.types.DisguiseData;
+import me.feldmannjr.disguise.types.base.DisguiseData;
 import me.feldmannjr.disguise.DisguiseWatcher;
 import me.feldmannjr.disguise.PluginVersion;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.inventivetalent.packetlistener.reflection.resolver.FieldResolver;
@@ -28,6 +30,7 @@ import java.util.Map;
 public class v1_8_R3 extends PluginVersion {
     FieldResolver spawnResolver = null;
     NMSClassResolver nmsResolver = null;
+    FieldResolver attachResolver;
 
     public void sendPacket(Player p, Object packet) {
         ((CraftPlayer) p).getHandle().playerConnection.sendPacket((Packet) packet);
@@ -45,7 +48,7 @@ public class v1_8_R3 extends PluginVersion {
 
         try {
             spawnResolver.resolveSilent("a").set(spawn, player.getEntityId());
-            spawnResolver.resolveSilent("b").set(spawn, data.getTypeId());
+            spawnResolver.resolveSilent("b").set(spawn, data.getEntityType().getTypeId());
             spawnResolver.resolveSilent("c").set(spawn, n(l.getX()));
             spawnResolver.resolveSilent("d").set(spawn, n(l.getY()));
             spawnResolver.resolveSilent("e").set(spawn, n(l.getZ()));
@@ -68,7 +71,7 @@ public class v1_8_R3 extends PluginVersion {
         return new PacketPlayOutNamedEntitySpawn(((CraftPlayer) p).getHandle());
     }
 
-    public Object buildDestroy(int entityid) {
+    public Object buildDestroy(int... entityid) {
         return new PacketPlayOutEntityDestroy(entityid);
     }
 
@@ -80,6 +83,49 @@ public class v1_8_R3 extends PluginVersion {
 
     public Object buildMetadata(int entityid, DisguiseWatcher watcher) {
         return new PacketPlayOutEntityMetadata(entityid, (DataWatcher) convertToNmsDatawatcher(watcher), true);
+    }
+
+    public Object buildMount(int vehicle, int passanger) {
+        if (attachResolver == null) {
+            attachResolver = new FieldResolver(nmsResolver.resolveSilent("PacketPlayOutAttachEntity"));
+        }
+        Packet p = new PacketPlayOutAttachEntity();
+        try {
+            attachResolver.resolveSilent("b").set(p, passanger);
+            attachResolver.resolveSilent("c").set(p, vehicle);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return p;
+    }
+
+    public Object buildSpawnPacket(int id, EntityType type, Location l, DisguiseWatcher watcher) {
+        if (nmsResolver == null) {
+            nmsResolver = new NMSClassResolver();
+        }
+        if (spawnResolver == null) {
+            spawnResolver = new FieldResolver(nmsResolver.resolveSilent("PacketPlayOutSpawnEntityLiving"));
+        }
+        PacketPlayOutSpawnEntityLiving spawn = new PacketPlayOutSpawnEntityLiving();
+
+        try {
+            spawnResolver.resolveSilent("a").set(spawn, id);
+            spawnResolver.resolveSilent("b").set(spawn, type.getTypeId());
+            spawnResolver.resolveSilent("c").set(spawn, n(l.getX()));
+            spawnResolver.resolveSilent("d").set(spawn, n(l.getY()));
+            spawnResolver.resolveSilent("e").set(spawn, n(l.getZ()));
+            spawnResolver.resolveSilent("i").set(spawn, m(l.getPitch()));
+            spawnResolver.resolveSilent("j").set(spawn, m(l.getYaw()));
+            spawnResolver.resolveSilent("k").set(spawn, m(l.getYaw()));//Head rotation
+            spawnResolver.resolveSilent("f").set(spawn, v(0));
+            spawnResolver.resolveSilent("g").set(spawn, v(0));
+            spawnResolver.resolveSilent("h").set(spawn, v(0));
+            spawnResolver.resolveSilent("l").set(spawn, convertToNmsDatawatcher(watcher));//Data watcher
+
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return spawn;
     }
 
     public boolean isPlayerSeeing(Player player, Player p2) {

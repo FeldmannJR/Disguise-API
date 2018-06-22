@@ -1,28 +1,27 @@
-package me.feldmannjr.disguise.types;
+package me.feldmannjr.disguise.types.base;
 
 import me.feldmannjr.disguise.DisguisePlugin;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
-public class EquipmentData extends LivingData {
+public abstract class EquipmentData extends LivingData {
 
     boolean showPlayerEquipment = true;
     boolean useCustomEquipment = false;
     ItemStack[] equipment = new ItemStack[5];
 
-    public EquipmentData(Player p, EntityType type) {
-        super(p, type);
+    public EquipmentData(Player p) {
+        super(p);
     }
 
     @Override
     public void sendSpawn(Player p) {
         super.sendSpawn(p);
-        showEquipment(p);
+        showEquipment(p, false);
     }
 
-    public void showEquipment(Player p) {
+    public void showEquipment(Player p, boolean remove) {
         if (showPlayerEquipment) {
             if (!useCustomEquipment) {
                 sendEquipmentPacket(p, EquipmentSlot.HAND, getPlayer().getItemInHand());
@@ -37,6 +36,15 @@ public class EquipmentData extends LivingData {
                 sendEquipmentPacket(p, EquipmentSlot.LEGS, equipment[2]);
                 sendEquipmentPacket(p, EquipmentSlot.FEET, equipment[1]);
             }
+        } else {
+            if (remove) {
+                sendEquipmentPacket(p, EquipmentSlot.HAND, null);
+                sendEquipmentPacket(p, EquipmentSlot.HEAD, null);
+                sendEquipmentPacket(p, EquipmentSlot.CHEST, null);
+                sendEquipmentPacket(p, EquipmentSlot.LEGS, null);
+                sendEquipmentPacket(p, EquipmentSlot.FEET, null);
+            }
+
         }
     }
 
@@ -54,7 +62,23 @@ public class EquipmentData extends LivingData {
         }
     }
 
+    public void setShowPlayerEquipment(boolean showPlayerEquipment) {
+        this.showPlayerEquipment = showPlayerEquipment;
+        for (Player p : getSeeing()) {
+            showEquipment(p, true);
+        }
+    }
+
     public boolean isShowingPlayerEquipment() {
         return showPlayerEquipment;
+    }
+
+    @Override
+    public boolean processOpt(String opt) {
+        if (opt.equalsIgnoreCase("showequipment")) {
+            setShowPlayerEquipment(!isShowingPlayerEquipment());
+            return true;
+        }
+        return super.processOpt(opt);
     }
 }

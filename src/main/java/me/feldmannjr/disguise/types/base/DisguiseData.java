@@ -1,4 +1,4 @@
-package me.feldmannjr.disguise.types;
+package me.feldmannjr.disguise.types.base;
 
 import me.feldmannjr.disguise.DisguisePlugin;
 import me.feldmannjr.disguise.DisguiseWatcher;
@@ -13,15 +13,13 @@ public abstract class DisguiseData {
 
     UUID uid;
     int playerId;
-    EntityType type;
     Player player;
     private boolean disguised = false;
 
-    public DisguiseData(Player p, EntityType type) {
+    public DisguiseData(Player p) {
         this.player = p;
         this.uid = p.getUniqueId();
         this.playerId = p.getEntityId();
-        this.type = type;
 
     }
 
@@ -72,6 +70,10 @@ public abstract class DisguiseData {
 
     }
 
+    public boolean processOpt(String opt) {
+        return false;
+    }
+
     public boolean isDisguised() {
         return disguised;
     }
@@ -82,7 +84,6 @@ public abstract class DisguiseData {
 
     public abstract DisguiseWatcher getDataWatcher();
 
-    public int getTypeId() {
-        return type.getTypeId();
-    }
+    public abstract EntityType getEntityType();
+
 }

@@ -1,6 +1,8 @@
 package me.feldmannjr.disguise;
 
-import me.feldmannjr.disguise.types.DisguiseData;
+import me.feldmannjr.disguise.types.base.DisguiseData;
+import org.bukkit.Location;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -13,11 +15,15 @@ public abstract class PluginVersion {
 
     public abstract Object buildSpawnPlayer(Player p);
 
-    public abstract Object buildDestroy(int entityid);
+    public abstract Object buildDestroy(int... entityid);
 
     public abstract Object buildEquipment(int entityid, int slot, ItemStack item);
 
     public abstract Object buildMetadata(int entityid, DisguiseWatcher watcher);
+
+    public abstract Object buildMount(int vehicle, int passanger);
+
+    public abstract Object buildSpawnPacket(int id, EntityType type, Location l, DisguiseWatcher watcher);
 
     /*
      * Is @player seeing @p2?

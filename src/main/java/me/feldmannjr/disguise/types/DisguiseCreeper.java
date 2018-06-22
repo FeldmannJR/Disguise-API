@@ -1,5 +1,6 @@
 package me.feldmannjr.disguise.types;
 
+import me.feldmannjr.disguise.types.base.LivingData;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
@@ -9,7 +10,7 @@ public class DisguiseCreeper extends LivingData {
     boolean fuse = true;//16
 
     public DisguiseCreeper(Player p) {
-        super(p, EntityType.CREEPER);
+        super(p);
     }
 
     public void setFuse(boolean fuse) {
@@ -30,5 +31,22 @@ public class DisguiseCreeper extends LivingData {
 
     public boolean isPowered() {
         return powered;
+    }
+
+    public boolean processOpt(String opt) {
+        if (opt.equalsIgnoreCase("fuse")) {
+            setFuse(!fuse);
+            return true;
+        }
+        if (opt.equalsIgnoreCase("powered")) {
+            setPowered(!powered);
+            return true;
+        }
+        return super.processOpt(opt);
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.CREEPER;
     }
 }

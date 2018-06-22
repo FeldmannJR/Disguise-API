@@ -1,9 +1,10 @@
 package me.feldmannjr.disguise.listeners;
 
 import me.feldmannjr.disguise.DisguiseAPI;
-import me.feldmannjr.disguise.types.DisguiseData;
 import me.feldmannjr.disguise.DisguisePlugin;
-import me.feldmannjr.disguise.types.EquipmentData;
+import me.feldmannjr.disguise.types.base.DisguiseData;
+import me.feldmannjr.disguise.types.base.EquipmentData;
+import me.feldmannjr.disguise.types.base.LivingData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.inventivetalent.packetlistener.handler.PacketHandler;
@@ -23,6 +24,9 @@ public class PacketListener extends PacketHandler {
         }
         if (sentPacket.getPacketName().equals("PacketPlayOutEntityEquipment")) {
             handleEquipment(sentPacket);
+        }
+        if (sentPacket.getPacketName().equals("PacketPlayOutEntityDestroy")) {
+            handleDestroi(sentPacket);
         }
 
     }
@@ -49,6 +53,20 @@ public class PacketListener extends PacketHandler {
                     pa.setCancelled(true);
                 }
             }
+        }
+    }
+
+    public void handleDestroi(SentPacket pa) {
+
+        for (int id : (int[]) pa.getPacketValue("a")) {
+            Entity e = DisguisePlugin.getEntityById(pa.getPlayer().getWorld(), id);
+            if (e instanceof Player) {
+                DisguiseData data = DisguiseAPI.getDisguise(e.getUniqueId());
+                if (data != null && data instanceof LivingData) {
+                    ((LivingData) data).destroyArmorStand(pa.getPlayer());
+                }
+            }
+
         }
     }
 
