@@ -22,12 +22,14 @@ public class DisguiseEnderman extends LivingData {
     public void setScreaming(boolean screaming) {
         watcher.add(18, screaming ? (byte) 1 : (byte) 0);
         this.screaming = screaming;
+        sendWatcher();
     }
 
     public void setBloco(MaterialData bloco) {
         watcher.add(16, (short) bloco.getItemTypeId());
         watcher.add(17, bloco.getData());
         this.bloco = bloco;
+        sendWatcher();
     }
 
     public MaterialData getBloco() {

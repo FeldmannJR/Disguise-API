@@ -45,6 +45,14 @@ public abstract class LivingData extends DisguiseData {
         DisguisePlugin.nms.sendPacket(p, DisguisePlugin.nms.buildMount(getNameId() + 1, getNameId()));
     }
 
+    @Override
+    public void restore() {
+        super.restore();
+        for (Player p : getSeeing()) {
+            destroyArmorStand(p);
+        }
+    }
+
     private Object buildArmorStandPacket() {
         DisguiseWatcher watcher = new DisguiseWatcher();
         //marker //baspalte //arms //gravity //small

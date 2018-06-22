@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 public class DisguiseCreeper extends LivingData {
 
     boolean powered = false;//17
-    boolean fuse = true;//16
+    boolean fuse = false;//16
 
     public DisguiseCreeper(Player p) {
         super(p);

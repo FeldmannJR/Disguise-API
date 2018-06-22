@@ -1,6 +1,14 @@
 package me.feldmannjr.disguise;
 
+import me.feldmannjr.disguise.types.DisguiseBlaze;
+import me.feldmannjr.disguise.types.DisguiseCaveSpider;
 import me.feldmannjr.disguise.types.DisguiseCreeper;
+import me.feldmannjr.disguise.types.DisguiseEnderman;
+import me.feldmannjr.disguise.types.DisguiseIronGolem;
+import me.feldmannjr.disguise.types.DisguiseSlime;
+import me.feldmannjr.disguise.types.DisguiseSpider;
+import me.feldmannjr.disguise.types.DisguiseVillager;
+import me.feldmannjr.disguise.types.DisguiseZombiePigman;
 import me.feldmannjr.disguise.types.base.DisguiseData;
 import me.feldmannjr.disguise.types.DisguiseSkeleton;
 import me.feldmannjr.disguise.types.DisguiseZombie;
@@ -11,7 +19,15 @@ public enum DisguiseTypes {
 
     ZOMBIE(DisguiseZombie.class),
     CREEPER(DisguiseCreeper.class),
-    SKELETON(DisguiseSkeleton.class);
+    SKELETON(DisguiseSkeleton.class),
+    SPIDER(DisguiseSpider.class),
+    CAVESPIDER(DisguiseCaveSpider.class),
+    SLIME(DisguiseSlime.class),
+    VILLAGER(DisguiseVillager.class),
+    PIGZOMBIE(DisguiseZombiePigman.class),
+    IRON_GOLEM(DisguiseIronGolem.class),
+    ENDERMAN(DisguiseEnderman.class),
+    BLAZE(DisguiseBlaze.class),;
 
     Class<? extends DisguiseData> classe;
 
