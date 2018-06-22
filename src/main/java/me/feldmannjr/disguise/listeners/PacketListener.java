@@ -1,18 +1,19 @@
 package me.feldmannjr.disguise.listeners;
 
 import me.feldmannjr.disguise.DisguiseAPI;
-import me.feldmannjr.disguise.DisguiseData;
-
+import me.feldmannjr.disguise.types.DisguiseData;
+import me.feldmannjr.disguise.DisguisePlugin;
+import me.feldmannjr.disguise.types.EquipmentData;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.inventivetalent.packetlistener.handler.PacketHandler;
 import org.inventivetalent.packetlistener.handler.ReceivedPacket;
 import org.inventivetalent.packetlistener.handler.SentPacket;
-
 import java.util.UUID;
 
 public class PacketListener extends PacketHandler {
 
-    public void onSend(SentPacket sentPacket)
-    {
+    public void onSend(SentPacket sentPacket) {
 
         if (sentPacket.getPlayer() == null) {
             return;
@@ -20,16 +21,38 @@ public class PacketListener extends PacketHandler {
         if (sentPacket.getPacketName().equals("PacketPlayOutNamedEntitySpawn")) {
             handleSpawn(sentPacket);
         }
+        if (sentPacket.getPacketName().equals("PacketPlayOutEntityEquipment")) {
+            handleEquipment(sentPacket);
+        }
 
     }
 
-    public void onReceive(ReceivedPacket receivedPacket)
-    {
+    public void onReceive(ReceivedPacket receivedPacket) {
 
     }
 
-    public void handleSpawn(SentPacket pa)
-    {
+    public void handleEquipment(SentPacket pa) {
+        int id = (Integer) pa.getPacketValue("a");
+        if (id < 0) {
+            pa.setPacketValue("a", -id);
+            return;
+        }
+        Entity e = DisguisePlugin.getEntityById(pa.getPlayer().getWorld(), id);
+        if (e instanceof Player) {
+            DisguiseData data = DisguiseAPI.getDisguise(e.getUniqueId());
+            if (data != null) {
+                if (data instanceof EquipmentData) {
+                    if (!((EquipmentData) data).isShowingPlayerEquipment()) {
+                        pa.setCancelled(true);
+                    }
+                } else {
+                    pa.setCancelled(true);
+                }
+            }
+        }
+    }
+
+    public void handleSpawn(SentPacket pa) {
 
         UUID uid = (UUID) pa.getPacketValue("b");
         DisguiseData data = DisguiseAPI.getDisguise(uid);
@@ -38,8 +61,6 @@ public class PacketListener extends PacketHandler {
             data.sendSpawn(pa.getPlayer());
         }
 
-
     }
-
 
 }

@@ -1,7 +1,7 @@
 package me.feldmannjr.disguise;
 
+import me.feldmannjr.disguise.types.DisguiseData;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
 import java.util.UUID;

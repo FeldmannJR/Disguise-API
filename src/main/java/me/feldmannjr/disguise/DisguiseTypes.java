@@ -4,13 +4,11 @@ import org.bukkit.entity.EntityType;
 
 public enum DisguiseTypes {
 
-
     ZOMBIE(EntityType.ZOMBIE);
 
     EntityType type;
 
-    private DisguiseTypes(EntityType type)
-    {
+    private DisguiseTypes(EntityType type) {
         this.type = type;
 
     }

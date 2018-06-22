@@ -18,7 +18,6 @@ public class DisguiseWatcher {
     {
         for (WatcherValueType typ : WatcherValueType.values()) {
             if (typ.type == obj.getClass()) {
-                System.out.println(typ.name() + " " + key + obj.getClass().getSimpleName());
                 values.put(key, new WatcherValue(key, typ, obj));
                 break;
             }

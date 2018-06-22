@@ -1,9 +1,21 @@
 package me.feldmannjr.disguise.v18;
 
-import me.feldmannjr.disguise.DisguiseData;
+import net.minecraft.server.v1_8_R3.BlockPosition;
+import net.minecraft.server.v1_8_R3.DataWatcher;
+import net.minecraft.server.v1_8_R3.EntityTrackerEntry;
+import net.minecraft.server.v1_8_R3.IntHashMap;
+import net.minecraft.server.v1_8_R3.ItemStack;
+import net.minecraft.server.v1_8_R3.Packet;
+import net.minecraft.server.v1_8_R3.PacketPlayOutEntityDestroy;
+import net.minecraft.server.v1_8_R3.PacketPlayOutEntityEquipment;
+import net.minecraft.server.v1_8_R3.PacketPlayOutEntityMetadata;
+import net.minecraft.server.v1_8_R3.PacketPlayOutNamedEntitySpawn;
+import net.minecraft.server.v1_8_R3.PacketPlayOutSpawnEntityLiving;
+import net.minecraft.server.v1_8_R3.Vector3f;
+
+import me.feldmannjr.disguise.types.DisguiseData;
 import me.feldmannjr.disguise.DisguiseWatcher;
 import me.feldmannjr.disguise.PluginVersion;
-import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
@@ -11,21 +23,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.inventivetalent.packetlistener.reflection.resolver.FieldResolver;
 import org.inventivetalent.packetlistener.reflection.resolver.minecraft.NMSClassResolver;
-
 import java.util.Map;
 
 public class v1_8_R3 extends PluginVersion {
     FieldResolver spawnResolver = null;
     NMSClassResolver nmsResolver = null;
 
-    public void sendPacket(Player p, Object packet)
-    {
+    public void sendPacket(Player p, Object packet) {
         ((CraftPlayer) p).getHandle().playerConnection.sendPacket((Packet) packet);
     }
 
-
-    public Object buildSpawnPacket(Player player, DisguiseData data)
-    {
+    public Object buildSpawnPacket(Player player, DisguiseData data) {
         if (nmsResolver == null) {
             nmsResolver = new NMSClassResolver();
         }
@@ -56,20 +64,25 @@ public class v1_8_R3 extends PluginVersion {
         return spawn;
     }
 
-    public Object buildSpawnPlayer(Player p)
-    {
+    public Object buildSpawnPlayer(Player p) {
         return new PacketPlayOutNamedEntitySpawn(((CraftPlayer) p).getHandle());
     }
 
-
-    public Object buildDestroy(int entityid)
-    {
+    public Object buildDestroy(int entityid) {
         return new PacketPlayOutEntityDestroy(entityid);
     }
 
+    public Object buildEquipment(int entityid, int slot, org.bukkit.inventory.ItemStack item) {
 
-    public boolean isPlayerSeeing(Player player, Player p2)
-    {
+        return new PacketPlayOutEntityEquipment(entityid, slot, CraftItemStack.asNMSCopy(item));
+
+    }
+
+    public Object buildMetadata(int entityid, DisguiseWatcher watcher) {
+        return new PacketPlayOutEntityMetadata(entityid, (DataWatcher) convertToNmsDatawatcher(watcher), true);
+    }
+
+    public boolean isPlayerSeeing(Player player, Player p2) {
         if (!player.canSee(p2)) {
             return false;
         }
@@ -84,8 +97,7 @@ public class v1_8_R3 extends PluginVersion {
 
     FieldResolver dataWatcherSolver;
 
-    public Object convertToNmsDatawatcher(DisguiseWatcher watcher)
-    {
+    public Object convertToNmsDatawatcher(DisguiseWatcher watcher) {
         if (dataWatcherSolver == null) {
             dataWatcherSolver = new FieldResolver(nmsResolver.resolveSilent("DataWatcher"));
         }
@@ -104,7 +116,6 @@ public class v1_8_R3 extends PluginVersion {
             if (value.getValue() == null) {
                 continue;
             }
-            //System.out.println("ID:" + value.getKey() + " TYPE:" + value.getType() + " VALUE:" + value.getValue().getClass().getSimpleName());
             switch (value.getType()) {
                 case BYTE:
                     type = 0;
@@ -147,9 +158,7 @@ public class v1_8_R3 extends PluginVersion {
         return nmswatcher;
     }
 
-
-    public DisguiseWatcher convertFromNmsDatawatcher(Object watcher)
-    {
+    public DisguiseWatcher convertFromNmsDatawatcher(Object watcher) {
         DisguiseWatcher nwatcher = new DisguiseWatcher();
 
         DataWatcher nmswatcher = (DataWatcher) watcher;
@@ -173,9 +182,7 @@ public class v1_8_R3 extends PluginVersion {
 
         }
 
-
         return null;
     }
-
 
 }
