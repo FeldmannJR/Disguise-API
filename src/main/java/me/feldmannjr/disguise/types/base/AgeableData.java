@@ -1,5 +1,6 @@
 package me.feldmannjr.disguise.types.base;
 
+import me.feldmannjr.disguise.annotations.SetAnnotation;
 import org.bukkit.entity.Player;
 
 public abstract class AgeableData extends LivingData {
@@ -9,6 +10,7 @@ public abstract class AgeableData extends LivingData {
         super(p);
     }
 
+    @SetAnnotation(nome = "baby")
     public void setBaby(boolean baby) {
         this.baby = baby;
         watcher.add(12, baby ? (byte) -1 : (byte) 0);
@@ -18,11 +20,4 @@ public abstract class AgeableData extends LivingData {
         return baby;
     }
 
-    @Override
-    public boolean processOpt(String opt) {
-        if (opt.equalsIgnoreCase("baby")) {
-            setBaby(!isBaby());
-        }
-        return super.processOpt(opt);
-    }
 }

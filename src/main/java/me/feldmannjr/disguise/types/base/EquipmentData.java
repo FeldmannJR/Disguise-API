@@ -1,6 +1,8 @@
 package me.feldmannjr.disguise.types.base;
 
 import me.feldmannjr.disguise.DisguisePlugin;
+import me.feldmannjr.disguise.annotations.SetAnnotation;
+import me.feldmannjr.disguise.types.player.DisguisePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -53,9 +55,12 @@ public abstract class EquipmentData extends LivingData {
     }
 
     @Override
-    public void restore() {
-        super.restore();
-        for (Player p : getSeeing()) {
+    public void restore(DisguiseData next) {
+        super.restore(next);
+        if (next instanceof EquipmentData || next instanceof DisguisePlayer) {
+            return;
+        }
+        for (Player p: getSeeing()) {
             showPlayerEquipment(p);
         }
 
@@ -70,14 +75,14 @@ public abstract class EquipmentData extends LivingData {
         useCustomEquipment = true;
         showPlayerEquipment = false;
         this.equipment[slot.ordinal()] = equipment;
-        for (Player p : getSeeing()) {
+        for (Player p: getSeeing()) {
             sendEquipmentPacket(p, slot, equipment);
         }
     }
-
+    @SetAnnotation(nome = "showequipment")
     public void setShowPlayerEquipment(boolean showPlayerEquipment) {
         this.showPlayerEquipment = showPlayerEquipment;
-        for (Player p : getSeeing()) {
+        for (Player p: getSeeing()) {
             showEquipment(p, true);
         }
     }
@@ -86,12 +91,5 @@ public abstract class EquipmentData extends LivingData {
         return showPlayerEquipment;
     }
 
-    @Override
-    public boolean processOpt(String opt) {
-        if (opt.equalsIgnoreCase("showequipment")) {
-            setShowPlayerEquipment(!isShowingPlayerEquipment());
-            return true;
-        }
-        return super.processOpt(opt);
-    }
+
 }

@@ -1,5 +1,7 @@
-package me.feldmannjr.disguise.types;
+package me.feldmannjr.disguise.types.monsters;
 
+import me.feldmannjr.disguise.annotations.ActionAnnotation;
+import me.feldmannjr.disguise.annotations.SetAnnotation;
 import me.feldmannjr.disguise.types.base.LivingData;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
@@ -19,34 +21,25 @@ public class DisguiseEnderman extends LivingData {
         return screaming;
     }
 
+    @SetAnnotation(nome = "screaming")
     public void setScreaming(boolean screaming) {
         watcher.add(18, screaming ? (byte) 1 : (byte) 0);
         this.screaming = screaming;
-        sendWatcher();
     }
 
     public void setBloco(MaterialData bloco) {
         watcher.add(16, (short) bloco.getItemTypeId());
         watcher.add(17, bloco.getData());
         this.bloco = bloco;
-        sendWatcher();
+    }
+
+    @ActionAnnotation
+    public void bloco() {
+        setBloco(new MaterialData(Material.DIAMOND_BLOCK));
     }
 
     public MaterialData getBloco() {
         return bloco;
-    }
-
-    @Override
-    public boolean processOpt(String opt) {
-        if (opt.equalsIgnoreCase("scream")) {
-            setScreaming(!isScreaming());
-            return true;
-        }
-        if (opt.equalsIgnoreCase("bloco")) {
-            setBloco(new MaterialData(Material.DIAMOND_BLOCK));
-        }
-
-        return super.processOpt(opt);
     }
 
     public EntityType getEntityType() {

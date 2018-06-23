@@ -2,30 +2,42 @@ package me.feldmannjr.disguise;
 
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
-
 import java.util.HashMap;
 
 public class DisguiseWatcher {
 
     HashMap<Integer, WatcherValue> values = new HashMap();
 
-    public HashMap<Integer, WatcherValue> getValues()
-    {
+    public HashMap<Integer, WatcherValue> getValues() {
         return values;
     }
 
-    public void add(int key, Object obj)
-    {
-        for (WatcherValueType typ : WatcherValueType.values()) {
+    public void add(int key, Object obj) {
+
+        WatcherValueType type = null;
+        for (WatcherValueType typ: WatcherValueType.values()) {
             if (typ.type == obj.getClass()) {
-                values.put(key, new WatcherValue(key, typ, obj));
+                type = typ;
                 break;
             }
         }
+        if (type == null) return;
 
-
+        if (values.containsKey(key)) {
+            WatcherValue value = values.get(key);
+            if (value.getValue() != obj) {
+                value.setValue(obj);
+                update();
+            }
+        } else {
+            values.put(key, new WatcherValue(key, type, obj));
+            update();
+        }
     }
 
+    public void update() {
+
+    }
 
     public enum WatcherValueType {
         BYTE(Byte.class),
@@ -39,38 +51,46 @@ public class DisguiseWatcher {
 
         Class type;
 
-        private WatcherValueType(Class type)
-        {
+        private WatcherValueType(Class type) {
             this.type = type;
 
         }
     }
 
-
     public class WatcherValue {
         int key;
         WatcherValueType type;
         Object value;
+        boolean update = true;
 
-        public WatcherValue(int key, WatcherValueType type, Object value)
-        {
+        public WatcherValue(int key, WatcherValueType type, Object value) {
             this.key = key;
             this.type = type;
             this.value = value;
         }
 
-        public Object getValue()
-        {
+        public Object getValue() {
             return value;
         }
 
-        public WatcherValueType getType()
-        {
+        public void setUpdate(boolean update) {
+            this.update = update;
+        }
+
+        public boolean isUpdate() {
+            return update;
+        }
+
+        public void setValue(Object value) {
+            this.value = value;
+            update = true;
+        }
+
+        public WatcherValueType getType() {
             return type;
         }
 
-        public int getKey()
-        {
+        public int getKey() {
             return key;
         }
     }
@@ -78,25 +98,21 @@ public class DisguiseWatcher {
     public static class Rotation {
         private float x, y, z;
 
-        public Rotation(float x, float y, float z)
-        {
+        public Rotation(float x, float y, float z) {
             this.x = x;
             this.y = y;
             this.z = z;
         }
 
-        public float getX()
-        {
+        public float getX() {
             return x;
         }
 
-        public float getY()
-        {
+        public float getY() {
             return y;
         }
 
-        public float getZ()
-        {
+        public float getZ() {
             return z;
         }
     }

@@ -1,5 +1,6 @@
-package me.feldmannjr.disguise.types;
+package me.feldmannjr.disguise.types.monsters;
 
+import me.feldmannjr.disguise.annotations.SetAnnotation;
 import me.feldmannjr.disguise.types.base.EquipmentData;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -11,37 +12,18 @@ public class DisguiseZombie extends EquipmentData {
 
     public DisguiseZombie(Player p) {
         super(p);
-        updateZombieWatcher();
     }
 
+    @SetAnnotation(nome = "baby")
     public void setBaby(boolean baby) {
         this.baby = baby;
-        updateZombieWatcher();
-        sendWatcher();
-    }
-
-    private void updateZombieWatcher() {
         watcher.add(12, (byte) (baby ? 1 : 0));
-        watcher.add(13, (byte) (villager ? 1 : 0));
-
     }
 
+    @SetAnnotation(nome = "villager")
     public void setVillager(boolean villager) {
         this.villager = villager;
-        updateZombieWatcher();
-        sendWatcher();
-    }
-
-    public boolean processOpt(String opt) {
-        if (opt.equalsIgnoreCase("villager")) {
-            setVillager(!villager);
-            return true;
-        }
-        if (opt.equalsIgnoreCase("baby")) {
-            setBaby(!baby);
-            return true;
-        }
-        return super.processOpt(opt);
+        watcher.add(13, (byte) (villager ? 1 : 0));
     }
 
     public EntityType getEntityType() {

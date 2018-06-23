@@ -1,7 +1,7 @@
 package me.feldmannjr.disguise.types.base;
 
 import me.feldmannjr.disguise.DisguisePlugin;
-import me.feldmannjr.disguise.PluginVersion;
+import me.feldmannjr.disguise.versions.PluginVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import java.util.ArrayList;
@@ -40,10 +40,6 @@ public abstract class DisguiseData {
 
     }
 
-    public boolean processOpt(String opt) {
-        return false;
-    }
-
     public boolean isDisguised() {
         return disguised;
     }
@@ -52,8 +48,8 @@ public abstract class DisguiseData {
         return player;
     }
 
-    public abstract void restore();
+    public abstract void restore(DisguiseData nextDisguise);
 
-    public abstract void disguise();
+    public abstract void disguise(DisguiseData lastDisguise);
 
 }

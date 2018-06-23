@@ -1,5 +1,6 @@
 package me.feldmannjr.disguise.types;
 
+import me.feldmannjr.disguise.annotations.SetAnnotation;
 import me.feldmannjr.disguise.types.base.AgeableData;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -17,22 +18,14 @@ public class DisguiseVillager extends AgeableData {
         return EntityType.VILLAGER;
     }
 
+    @SetAnnotation(nome = "profession")
     public void setProfession(Villager.Profession prof) {
         this.prof = prof;
         watcher.add(16, prof.ordinal());
-        sendWatcher();
     }
 
     public Villager.Profession getProfession() {
         return prof;
     }
 
-    @Override
-    public boolean processOpt(String opt) {
-        if (opt.equalsIgnoreCase("profession")) {
-            setProfession(Villager.Profession.values()[prof.ordinal() >= Villager.Profession.values().length ? 0 : (prof.ordinal() + 1)]);
-            return true;
-        }
-        return super.processOpt(opt);
-    }
 }

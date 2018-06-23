@@ -1,4 +1,4 @@
-package me.feldmannjr.disguise.types;
+package me.feldmannjr.disguise.types.monsters;
 
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;

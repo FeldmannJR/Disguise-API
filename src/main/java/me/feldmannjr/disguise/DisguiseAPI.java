@@ -18,11 +18,11 @@ public class DisguiseAPI {
     public static void setDisguise(Player p, DisguiseData data) {
         DisguiseData datao = disguises.remove(p.getUniqueId());
         if (datao != null) {
-            datao.restore();
+            datao.restore(data);
         }
         if (data != null) {
             disguises.put(p.getUniqueId(), data);
-            data.disguise();
+            data.disguise(datao);
         }
     }
 
@@ -31,5 +31,9 @@ public class DisguiseAPI {
             return disguises.get(uid);
         }
         return null;
+    }
+
+    public static void removeDisguise(UUID uid) {
+        disguises.remove(uid);
     }
 }

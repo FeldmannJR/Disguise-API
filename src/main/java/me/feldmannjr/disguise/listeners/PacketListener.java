@@ -5,7 +5,6 @@ import me.feldmannjr.disguise.DisguisePlugin;
 import me.feldmannjr.disguise.types.base.DisguiseData;
 import me.feldmannjr.disguise.types.base.EquipmentData;
 import me.feldmannjr.disguise.types.base.LivingData;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.inventivetalent.packetlistener.handler.PacketHandler;
 import org.inventivetalent.packetlistener.handler.ReceivedPacket;
@@ -41,30 +40,31 @@ public class PacketListener extends PacketHandler {
             pa.setPacketValue("a", -id);
             return;
         }
-        Entity e = DisguisePlugin.getEntityById(pa.getPlayer().getWorld(), id);
-        if (e instanceof Player) {
-            DisguiseData data = DisguiseAPI.getDisguise(e.getUniqueId());
-            if (data != null) {
-                if (data instanceof EquipmentData) {
-                    if (!((EquipmentData) data).isShowingPlayerEquipment()) {
-                        pa.setCancelled(true);
-                    }
-                } else {
+        Player e = DisguisePlugin.getEntityById(id);
+        if (e == null) {
+            return;
+        }
+        DisguiseData data = DisguiseAPI.getDisguise(e.getUniqueId());
+        if (data != null) {
+            if (data instanceof EquipmentData) {
+                if (!((EquipmentData) data).isShowingPlayerEquipment()) {
                     pa.setCancelled(true);
                 }
+            } else if (data instanceof LivingData) {
+                pa.setCancelled(true);
             }
         }
+
     }
 
     public void handleDestroi(SentPacket pa) {
 
-        for (int id : (int[]) pa.getPacketValue("a")) {
-            Entity e = DisguisePlugin.getEntityById(pa.getPlayer().getWorld(), id);
-            if (e instanceof Player) {
-                DisguiseData data = DisguiseAPI.getDisguise(e.getUniqueId());
-                if (data != null && data instanceof LivingData) {
-                    ((LivingData) data).destroyArmorStand(pa.getPlayer());
-                }
+        for (int id: (int[]) pa.getPacketValue("a")) {
+            Player p = DisguisePlugin.getEntityById(id);
+            if (p == null) return;
+            DisguiseData data = DisguiseAPI.getDisguise(p.getUniqueId());
+            if (data != null && data instanceof LivingData) {
+                ((LivingData) data).destroyArmorStand(pa.getPlayer());
             }
 
         }

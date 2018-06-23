@@ -2,12 +2,16 @@ package me.feldmannjr.disguise.listeners;
 
 import com.mojang.authlib.GameProfile;
 import me.feldmannjr.disguise.DisguiseAPI;
-import me.feldmannjr.disguise.types.player.DisguisePlayer;
 import me.feldmannjr.disguise.types.base.DisguiseData;
+import me.feldmannjr.disguise.types.player.DisguisePlayer;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.inventivetalent.packetlistener.handler.PacketHandler;
 import org.inventivetalent.packetlistener.handler.ReceivedPacket;
 import org.inventivetalent.packetlistener.handler.SentPacket;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,6 +48,22 @@ public class PlayerPacketListener extends PacketHandler {
             DisguiseData data = DisguiseAPI.getDisguise(uid);
             if (data != null && data instanceof DisguisePlayer) {
                 sentPacket.setPacketValue("b", ((DisguisePlayer) data).data.getUUID());
+            }
+        }
+        if (sentPacket.getPacketName().equalsIgnoreCase("PacketPlayOutScoreboardTeam")) {
+            Collection<String> names = (Collection<String>) sentPacket.getPacketValue("g");
+            if (names == null || names.isEmpty()) {
+                return;
+            }
+            for (String n: new ArrayList<String>(names)) {
+                Player p = Bukkit.getPlayer(n);
+                if (p != null && p.isOnline()) {
+                    DisguiseData data = DisguiseAPI.getDisguise(p);
+                    if (data != null && data instanceof DisguisePlayer) {
+                        names.remove(n);
+                        names.add(((DisguisePlayer) data).data.getNome());
+                    }
+                }
             }
         }
 

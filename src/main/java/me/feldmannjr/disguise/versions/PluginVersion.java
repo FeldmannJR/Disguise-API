@@ -1,6 +1,7 @@
-package me.feldmannjr.disguise;
+package me.feldmannjr.disguise.versions;
 
 import com.mojang.authlib.GameProfile;
+import me.feldmannjr.disguise.DisguiseWatcher;
 import me.feldmannjr.disguise.types.base.DisguiseData;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
@@ -27,13 +28,15 @@ public abstract class PluginVersion {
 
     public abstract Object buildSpawnPacket(int id, EntityType type, Location l, DisguiseWatcher watcher);
 
+    public abstract Object buildEntityStatus(int entityId, byte status);
     /*
      * Is @player seeing @p2?
      *
      * */
+
     public abstract boolean isPlayerSeeing(Player player, Player p2);
 
-    public abstract Object convertToNmsDatawatcher(DisguiseWatcher watcher);
+    public abstract Object convertToNmsDatawatcher(DisguiseWatcher watcher, boolean all);
 
     public abstract DisguiseWatcher convertFromNmsDatawatcher(Object watcher);
 
@@ -54,6 +57,8 @@ public abstract class PluginVersion {
         int var1 = (int) var0;
         return var0 < (float) var1 ? var1 - 1 : var1;
     }
+
+    public abstract void reloadPlayer(Player p);
 
     public abstract Object removeFromTabList(UUID uid);
 

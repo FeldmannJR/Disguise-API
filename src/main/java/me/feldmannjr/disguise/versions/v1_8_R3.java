@@ -1,7 +1,8 @@
-package me.feldmannjr.disguise.v18;
+package me.feldmannjr.disguise.versions;
 
 import net.minecraft.server.v1_8_R3.BlockPosition;
 import net.minecraft.server.v1_8_R3.DataWatcher;
+import net.minecraft.server.v1_8_R3.EntityPlayer;
 import net.minecraft.server.v1_8_R3.EntityTrackerEntry;
 import net.minecraft.server.v1_8_R3.IntHashMap;
 import net.minecraft.server.v1_8_R3.ItemStack;
@@ -10,6 +11,7 @@ import net.minecraft.server.v1_8_R3.PacketPlayOutAttachEntity;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntityEquipment;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntityMetadata;
+import net.minecraft.server.v1_8_R3.PacketPlayOutEntityStatus;
 import net.minecraft.server.v1_8_R3.PacketPlayOutNamedEntitySpawn;
 import net.minecraft.server.v1_8_R3.PacketPlayOutPlayerInfo;
 import net.minecraft.server.v1_8_R3.PacketPlayOutSpawnEntityLiving;
@@ -18,7 +20,6 @@ import net.minecraft.server.v1_8_R3.WorldSettings;
 
 import com.mojang.authlib.GameProfile;
 import me.feldmannjr.disguise.DisguiseWatcher;
-import me.feldmannjr.disguise.PluginVersion;
 import me.feldmannjr.disguise.types.base.DisguiseData;
 import me.feldmannjr.disguise.types.base.LivingData;
 import me.feldmannjr.disguise.types.player.DisguisePlayer;
@@ -70,7 +71,7 @@ public class v1_8_R3 extends PluginVersion {
                 spawnResolver.resolveSilent("f").set(spawn, v(player.getVelocity().getX()));
                 spawnResolver.resolveSilent("g").set(spawn, v(player.getVelocity().getY()));
                 spawnResolver.resolveSilent("h").set(spawn, v(player.getVelocity().getZ()));
-                DataWatcher watcher = (DataWatcher) convertToNmsDatawatcher(((LivingData) data).getDataWatcher());
+                DataWatcher watcher = (DataWatcher) convertToNmsDatawatcher(((LivingData) data).getDataWatcher(), true);
                 spawnResolver.resolveSilent("l").set(spawn, watcher);//Data watcher
 
             } catch (IllegalAccessException e) {
@@ -96,7 +97,7 @@ public class v1_8_R3 extends PluginVersion {
     }
 
     public Object buildMetadata(int entityid, DisguiseWatcher watcher) {
-        return new PacketPlayOutEntityMetadata(entityid, (DataWatcher) convertToNmsDatawatcher(watcher), true);
+        return new PacketPlayOutEntityMetadata(entityid, (DataWatcher) convertToNmsDatawatcher(watcher, false), true);
     }
 
     public Object buildMount(int vehicle, int passanger) {
@@ -134,12 +135,30 @@ public class v1_8_R3 extends PluginVersion {
             spawnResolver.resolveSilent("f").set(spawn, v(0));
             spawnResolver.resolveSilent("g").set(spawn, v(0));
             spawnResolver.resolveSilent("h").set(spawn, v(0));
-            spawnResolver.resolveSilent("l").set(spawn, convertToNmsDatawatcher(watcher));//Data watcher
+            spawnResolver.resolveSilent("l").set(spawn, convertToNmsDatawatcher(watcher, true));//Data watcher
 
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
         return spawn;
+    }
+
+    FieldResolver statusResolver;
+
+    @Override
+    public Object buildEntityStatus(int entityId, byte status) {
+        Packet p = new PacketPlayOutEntityStatus();
+        if (statusResolver == null) {
+            statusResolver = new FieldResolver(p.getClass());
+        }
+        try {
+            statusResolver.resolveSilent("a").set(p, entityId);
+            statusResolver.resolveSilent("b").set(p, status);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return p;
+
     }
 
     public boolean isPlayerSeeing(Player player, Player p2) {
@@ -157,7 +176,7 @@ public class v1_8_R3 extends PluginVersion {
 
     FieldResolver dataWatcherSolver;
 
-    public Object convertToNmsDatawatcher(DisguiseWatcher watcher) {
+    public Object convertToNmsDatawatcher(DisguiseWatcher watcher, boolean all) {
         if (dataWatcherSolver == null) {
             dataWatcherSolver = new FieldResolver(nmsResolver.resolveSilent("DataWatcher"));
         }
@@ -172,6 +191,7 @@ public class v1_8_R3 extends PluginVersion {
 
         for (DisguiseWatcher.WatcherValue value: watcher.getValues().values()) {
             Object obj = value.getValue();
+            if (!all && !value.isUpdate()) continue;
             int type = 0;
             if (value.getValue() == null) {
                 continue;
@@ -243,6 +263,12 @@ public class v1_8_R3 extends PluginVersion {
         }
 
         return null;
+    }
+
+    @Override
+    public void reloadPlayer(Player p) {
+        EntityPlayer handle = ((CraftPlayer) p).getHandle();
+        ((CraftPlayer) p).getHandle().server.getPlayerList().moveToWorld(handle, 0, false, handle.getBukkitEntity().getLocation(), true);
     }
 
     public GameProfile getGameProfile(Player p) {

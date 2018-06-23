@@ -1,22 +1,20 @@
 package me.feldmannjr.disguise.types.player;
 
-import net.minecraft.server.v1_8_R3.EntityPlayer;
-
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
-import com.mojang.authlib.properties.PropertyMap;
 import me.feldmannjr.disguise.DisguisePlugin;
 import me.feldmannjr.disguise.types.base.DisguiseData;
+import me.feldmannjr.disguise.types.base.EquipmentData;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.UUID;
 
 public class DisguisePlayer extends DisguiseData {
 
     public PlayerDisguiseData data;
+    public boolean showScoreboard = true;
 
     public DisguisePlayer(Player p, String nome) {
         super(p);
@@ -25,12 +23,23 @@ public class DisguisePlayer extends DisguiseData {
     }
 
     @Override
-    public void restore() {
+    public void restore(DisguiseData next) {
         removeFromTab(true);
-        //      injectProperties(nms().getGameProfile(getPlayer()), data.texturedefault, getPlayer().getName());
-        //  getPlayer().setCustomName(null);
+        if (next == null || !(next instanceof DisguisePlayer)) {
+            getPlayer().setDisplayName(getPlayer().getName());
+            nms().addToTabList(getPlayer());
+        }
+        respawn(true, next == null, (next == null || !(next instanceof DisguisePlayer)), data == null || !(next instanceof EquipmentData || next instanceof DisguisePlayer));
+    }
+
+    @Override
+    public void disguise(DisguiseData last) {
+        if (last == null || !(last instanceof DisguisePlayer)) {
+            removeFromTab(false);
+        }
         nms().addToTabList(getPlayer());
-        respawn();
+        getPlayer().setDisplayName(data.nome);
+        respawn(last == null, true, true, true);
     }
 
     public void removeFromTab(boolean disguised) {
@@ -45,24 +54,32 @@ public class DisguisePlayer extends DisguiseData {
         }
     }
 
-    public void respawn() {
+    public void respawn(boolean destroyb, boolean spawnb, boolean reload, boolean equipment) {
         Object destroy = nms().buildDestroy(getPlayer().getEntityId());
         Object spawn = nms().buildSpawnPlayer(getPlayer());
         for (Player p: getSeeing()) {
-            nms().sendPacket(p, destroy);
-            nms().sendPacket(p, spawn);
+            if (destroyb)
+                nms().sendPacket(p, destroy);
+            if (spawnb)
+                nms().sendPacket(p, spawn);
+            if (equipment)
+                showPlayerEquipment(p);
         }
-        EntityPlayer handle = ((CraftPlayer) getPlayer()).getHandle();
-        ((CraftPlayer) getPlayer()).getHandle().server.getPlayerList().moveToWorld(handle, 0, false, handle.getBukkitEntity().getLocation(), true);
+        if (reload)
+            nms().reloadPlayer(getPlayer());
     }
 
-    @Override
-    public void disguise() {
+    public void showPlayerEquipment(Player p) {
+        sendEquipmentPacket(p, EquipmentSlot.HAND, getPlayer().getItemInHand());
+        sendEquipmentPacket(p, EquipmentSlot.HEAD, getPlayer().getInventory().getHelmet());
+        sendEquipmentPacket(p, EquipmentSlot.CHEST, getPlayer().getInventory().getChestplate());
+        sendEquipmentPacket(p, EquipmentSlot.LEGS, getPlayer().getInventory().getLeggings());
+        sendEquipmentPacket(p, EquipmentSlot.FEET, getPlayer().getInventory().getBoots());
+    }
 
-        removeFromTab(false);
-        nms().addToTabList(getPlayer());
-        //   getPlayer().setCustomName(data.nome);
-        respawn();
+    private void sendEquipmentPacket(Player p, EquipmentSlot slot, ItemStack it) {
+        int id = -getPlayer().getEntityId();
+        DisguisePlugin.nms.sendPacket(p, DisguisePlugin.nms.buildEquipment(id, slot.ordinal(), it));
     }
 
     GameProfile cache;
@@ -102,20 +119,18 @@ public class DisguisePlayer extends DisguiseData {
 
     public class PlayerDisguiseData {
         String nome;
-        String prefix = null;
-        String sufix = null;
-        Property texturedefault;
         Player p;
         UUID uid;
 
         public PlayerDisguiseData(Player p, String nome) {
             this.p = p;
             this.nome = nome;
-            PropertyMap map = DisguisePlugin.nms.getGameProfile(p).getProperties();
-            for (String s: map.keys()) {
-                Collection<Property> properties = map.get(s);
-            }
+
             uid = UUID.randomUUID();
+        }
+
+        public String getNome() {
+            return nome;
         }
 
         public UUID getUUID() {
