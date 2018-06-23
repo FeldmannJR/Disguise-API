@@ -2,6 +2,7 @@ package me.feldmannjr.disguise.cmds;
 
 import me.feldmannjr.disguise.DisguiseAPI;
 import me.feldmannjr.disguise.DisguiseTypes;
+import me.feldmannjr.disguise.types.player.DisguisePlayer;
 import me.feldmannjr.disguise.types.base.DisguiseData;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -29,7 +30,7 @@ public class CmdDisguise implements CommandExecutor {
                     return false;
                 }
                 String tipos = "";
-                for (DisguiseTypes type : DisguiseTypes.values()) {
+                for (DisguiseTypes type: DisguiseTypes.values()) {
                     if (type.name().equalsIgnoreCase(strings[0])) {
                         DisguiseAPI.setDisguise(p, type.createData(p));
                         p.sendMessage("Transformado em " + type.name());
@@ -39,7 +40,12 @@ public class CmdDisguise implements CommandExecutor {
                 }
                 cs.sendMessage("Tipo não encontrado! Tipos:" + tipos);
             }
-
+            if (strings.length == 2) {
+                if (strings[0].equalsIgnoreCase("player")) {
+                    String nome = strings[1];
+                    DisguiseAPI.setDisguise(p, new DisguisePlayer(p, nome));
+                }
+            }
         }
         return false;
     }

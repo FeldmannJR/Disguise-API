@@ -74,9 +74,9 @@ public class PacketListener extends PacketHandler {
 
         UUID uid = (UUID) pa.getPacketValue("b");
         DisguiseData data = DisguiseAPI.getDisguise(uid);
-        if (data != null) {
+        if (data != null && data instanceof LivingData) {
             pa.setCancelled(true);
-            data.sendSpawn(pa.getPlayer());
+            ((LivingData) data).sendSpawn(pa.getPlayer());
         }
 
     }

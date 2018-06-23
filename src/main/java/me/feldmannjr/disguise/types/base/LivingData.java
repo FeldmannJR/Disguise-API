@@ -32,27 +32,6 @@ public abstract class LivingData extends DisguiseData {
         watcher.add(9, arrows);
     }
 
-    @Override
-    public void sendSpawn(Player p) {
-        super.sendSpawn(p);
-        if (nameTag == null) {
-            return;
-        }
-
-        DisguisePlugin.nms.sendPacket(p, buildArmorStandPacket());
-        DisguisePlugin.nms.sendPacket(p, buildSquid());
-        DisguisePlugin.nms.sendPacket(p, DisguisePlugin.nms.buildMount(getPlayer().getEntityId(), getNameId() + 1));
-        DisguisePlugin.nms.sendPacket(p, DisguisePlugin.nms.buildMount(getNameId() + 1, getNameId()));
-    }
-
-    @Override
-    public void restore() {
-        super.restore();
-        for (Player p : getSeeing()) {
-            destroyArmorStand(p);
-        }
-    }
-
     private Object buildArmorStandPacket() {
         DisguiseWatcher watcher = new DisguiseWatcher();
         //marker //baspalte //arms //gravity //small
@@ -84,5 +63,52 @@ public abstract class LivingData extends DisguiseData {
     public DisguiseWatcher getDataWatcher() {
         return watcher;
     }
+
+    public void sendSpawn(Player p) {
+        Object o = DisguisePlugin.nms.buildSpawnPacket(player, this);
+        DisguisePlugin.nms.sendPacket(p, o);
+        if (nameTag == null) {
+            return;
+        }
+
+        DisguisePlugin.nms.sendPacket(p, buildArmorStandPacket());
+        DisguisePlugin.nms.sendPacket(p, buildSquid());
+        DisguisePlugin.nms.sendPacket(p, DisguisePlugin.nms.buildMount(getPlayer().getEntityId(), getNameId() + 1));
+        DisguisePlugin.nms.sendPacket(p, DisguisePlugin.nms.buildMount(getNameId() + 1, getNameId()));
+
+    }
+
+    public void disguise() {
+        Object destroy = DisguisePlugin.nms.buildDestroy(playerId);
+        disguised = true;
+        for (Player pl : getSeeing()) {
+            DisguisePlugin.nms.sendPacket(pl, destroy);
+            sendSpawn(pl);
+        }
+    }
+
+    public void sendWatcher() {
+        Object packet = DisguisePlugin.nms.buildMetadata(getPlayer().getEntityId(), getDataWatcher());
+        for (Player p : getSeeing()) {
+            DisguisePlugin.nms.sendPacket(p, packet);
+        }
+
+    }
+
+    public void restore() {
+        Object destroy = DisguisePlugin.nms.buildDestroy(playerId);
+        Object spawn = DisguisePlugin.nms.buildSpawnPlayer(player);
+
+        for (Player pl : getSeeing()) {
+            DisguisePlugin.nms.sendPacket(pl, destroy);
+            DisguisePlugin.nms.sendPacket(pl, spawn);
+        }
+        for (Player p : getSeeing()) {
+            destroyArmorStand(p);
+        }
+        disguised = false;
+    }
+
+    public abstract EntityType getEntityType();
 
 }

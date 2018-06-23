@@ -11,12 +11,18 @@ import net.minecraft.server.v1_8_R3.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntityEquipment;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntityMetadata;
 import net.minecraft.server.v1_8_R3.PacketPlayOutNamedEntitySpawn;
+import net.minecraft.server.v1_8_R3.PacketPlayOutPlayerInfo;
 import net.minecraft.server.v1_8_R3.PacketPlayOutSpawnEntityLiving;
 import net.minecraft.server.v1_8_R3.Vector3f;
+import net.minecraft.server.v1_8_R3.WorldSettings;
 
-import me.feldmannjr.disguise.types.base.DisguiseData;
+import com.mojang.authlib.GameProfile;
 import me.feldmannjr.disguise.DisguiseWatcher;
 import me.feldmannjr.disguise.PluginVersion;
+import me.feldmannjr.disguise.types.base.DisguiseData;
+import me.feldmannjr.disguise.types.base.LivingData;
+import me.feldmannjr.disguise.types.player.DisguisePlayer;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
@@ -25,7 +31,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.inventivetalent.packetlistener.reflection.resolver.FieldResolver;
 import org.inventivetalent.packetlistener.reflection.resolver.minecraft.NMSClassResolver;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class v1_8_R3 extends PluginVersion {
     FieldResolver spawnResolver = null;
@@ -43,28 +51,34 @@ public class v1_8_R3 extends PluginVersion {
         if (spawnResolver == null) {
             spawnResolver = new FieldResolver(nmsResolver.resolveSilent("PacketPlayOutSpawnEntityLiving"));
         }
-        PacketPlayOutSpawnEntityLiving spawn = new PacketPlayOutSpawnEntityLiving();
-        Location l = player.getLocation();
+        if (data instanceof DisguisePlayer) {
 
-        try {
-            spawnResolver.resolveSilent("a").set(spawn, player.getEntityId());
-            spawnResolver.resolveSilent("b").set(spawn, data.getEntityType().getTypeId());
-            spawnResolver.resolveSilent("c").set(spawn, n(l.getX()));
-            spawnResolver.resolveSilent("d").set(spawn, n(l.getY()));
-            spawnResolver.resolveSilent("e").set(spawn, n(l.getZ()));
-            spawnResolver.resolveSilent("i").set(spawn, m(l.getPitch()));
-            spawnResolver.resolveSilent("j").set(spawn, m(l.getYaw()));
-            spawnResolver.resolveSilent("k").set(spawn, m(l.getYaw()));//Head rotation
-            spawnResolver.resolveSilent("f").set(spawn, v(player.getVelocity().getX()));
-            spawnResolver.resolveSilent("g").set(spawn, v(player.getVelocity().getY()));
-            spawnResolver.resolveSilent("h").set(spawn, v(player.getVelocity().getZ()));
-            DataWatcher watcher = (DataWatcher) convertToNmsDatawatcher(data.getDataWatcher());
-            spawnResolver.resolveSilent("l").set(spawn, watcher);//Data watcher
-
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
         }
-        return spawn;
+        if (data instanceof LivingData) {
+            PacketPlayOutSpawnEntityLiving spawn = new PacketPlayOutSpawnEntityLiving();
+            Location l = player.getLocation();
+
+            try {
+                spawnResolver.resolveSilent("a").set(spawn, player.getEntityId());
+                spawnResolver.resolveSilent("b").set(spawn, ((LivingData) data).getEntityType().getTypeId());
+                spawnResolver.resolveSilent("c").set(spawn, n(l.getX()));
+                spawnResolver.resolveSilent("d").set(spawn, n(l.getY()));
+                spawnResolver.resolveSilent("e").set(spawn, n(l.getZ()));
+                spawnResolver.resolveSilent("i").set(spawn, m(l.getPitch()));
+                spawnResolver.resolveSilent("j").set(spawn, m(l.getYaw()));
+                spawnResolver.resolveSilent("k").set(spawn, m(l.getYaw()));//Head rotation
+                spawnResolver.resolveSilent("f").set(spawn, v(player.getVelocity().getX()));
+                spawnResolver.resolveSilent("g").set(spawn, v(player.getVelocity().getY()));
+                spawnResolver.resolveSilent("h").set(spawn, v(player.getVelocity().getZ()));
+                DataWatcher watcher = (DataWatcher) convertToNmsDatawatcher(((LivingData) data).getDataWatcher());
+                spawnResolver.resolveSilent("l").set(spawn, watcher);//Data watcher
+
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+            return spawn;
+        }
+        return null;
     }
 
     public Object buildSpawnPlayer(Player p) {
@@ -156,7 +170,7 @@ public class v1_8_R3 extends PluginVersion {
             return nmswatcher;
         }
 
-        for (DisguiseWatcher.WatcherValue value : watcher.getValues().values()) {
+        for (DisguiseWatcher.WatcherValue value: watcher.getValues().values()) {
             Object obj = value.getValue();
             int type = 0;
             if (value.getValue() == null) {
@@ -208,7 +222,7 @@ public class v1_8_R3 extends PluginVersion {
         DisguiseWatcher nwatcher = new DisguiseWatcher();
 
         DataWatcher nmswatcher = (DataWatcher) watcher;
-        for (DataWatcher.WatchableObject value : nmswatcher.c()) {
+        for (DataWatcher.WatchableObject value: nmswatcher.c()) {
             int type = value.c();
             int key = value.a();
             Object obj = value.b();
@@ -229,6 +243,41 @@ public class v1_8_R3 extends PluginVersion {
         }
 
         return null;
+    }
+
+    public GameProfile getGameProfile(Player p) {
+        return ((CraftPlayer) p).getProfile();
+    }
+
+    FieldResolver infoResolver = null;
+
+    @Override
+    public Object removeFromTabList(UUID uid) {
+        if (nmsResolver == null) {
+            nmsResolver = new NMSClassResolver();
+        }
+        if (infoResolver == null) {
+            infoResolver = new FieldResolver(nmsResolver.resolveSilent("PacketPlayOutPlayerInfo"));
+        }
+        PacketPlayOutPlayerInfo info = new PacketPlayOutPlayerInfo();
+        try {
+            infoResolver.resolveSilent("a").set(info, PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER);
+            List<PacketPlayOutPlayerInfo.PlayerInfoData> infos = (List<PacketPlayOutPlayerInfo.PlayerInfoData>) infoResolver.resolveSilent("b").get(info);
+            PacketPlayOutPlayerInfo.PlayerInfoData playerInfoData = (info).new PlayerInfoData(new GameProfile(uid, null), 0, WorldSettings.EnumGamemode.CREATIVE, null);
+            infos.add(playerInfoData);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return info;
+    }
+
+    @Override
+    public void addToTabList(Player p) {
+        PacketPlayOutPlayerInfo info = new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, ((CraftPlayer) p).getHandle());
+        for (Player pOn: Bukkit.getOnlinePlayers()) {
+            sendPacket(pOn, info);
+        }
     }
 
 }

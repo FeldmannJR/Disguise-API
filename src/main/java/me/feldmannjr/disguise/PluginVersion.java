@@ -1,10 +1,12 @@
 package me.feldmannjr.disguise;
 
+import com.mojang.authlib.GameProfile;
 import me.feldmannjr.disguise.types.base.DisguiseData;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import java.util.UUID;
 
 //Reflections é um saco melhor criar uma versão pra cada
 public abstract class PluginVersion {
@@ -53,4 +55,9 @@ public abstract class PluginVersion {
         return var0 < (float) var1 ? var1 - 1 : var1;
     }
 
+    public abstract Object removeFromTabList(UUID uid);
+
+    public abstract void addToTabList(Player p);
+
+    public abstract GameProfile getGameProfile(Player p);
 }
