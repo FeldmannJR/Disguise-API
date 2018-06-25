@@ -30,9 +30,19 @@ public class CmdDisguise implements CommandExecutor {
             }
             if (strings.length == 1) {
                 String a = strings[0];
+
                 DisguiseData data = DisguiseAPI.getDisguise(p.getUniqueId());
+                if (a.equalsIgnoreCase("info")) {
+                    if (data == null) {
+                        p.sendMessage("Você não está com um disguise!");
+                        return false;
+                    } else {
+                        sendInfo(p, data);
+                        return false;
+                    }
+                }
                 if (data != null && doAction(p, data, a)) {
-                    p.sendMessage("Feitooo");
+                    p.sendMessage("§aFeito ação " + a);
                     return false;
                 }
                 String tipos = "";
@@ -47,19 +57,47 @@ public class CmdDisguise implements CommandExecutor {
                 cs.sendMessage("Tipo não encontrado! Tipos:" + tipos);
             }
             if (strings.length == 2) {
-                DisguiseData data = DisguiseAPI.getDisguise(p.getUniqueId());
 
-                if (data != null && doSet(p, data, strings[0], strings[1])) {
-                    p.sendMessage("§aFeito");
-                    return false;
-                }
                 if (strings[0].equalsIgnoreCase("player")) {
                     String nome = strings[1];
                     DisguiseAPI.setDisguise(p, new DisguisePlayer(p, nome));
+                    return false;
                 }
+                DisguiseData data = DisguiseAPI.getDisguise(p.getUniqueId());
+
+                if (data != null && doSet(p, data, strings[0], strings[1])) {
+                    p.sendMessage("§aSetado " + strings[0] + " = " + strings[1]);
+                    return false;
+                }
+                p.sendMessage("§cNão encontrado data para setar");
+
             }
         }
         return false;
+    }
+
+    public void sendInfo(Player p, DisguiseData data) {
+        for (Method m: getAllMethodsInHierarchy(data.getClass())) {
+            SetAnnotation an = m.getAnnotation(SetAnnotation.class);
+            if (an != null) {
+                String nome = an.nome();
+                if (nome.isEmpty()) {
+                    nome = m.getName();
+                }
+
+                p.sendMessage(nome + "(" + m.getParameterTypes()[0].getSimpleName() + "), ");
+            }
+            ActionAnnotation ana = m.getAnnotation(ActionAnnotation.class);
+            if (ana != null) {
+                String nome = ana.nome();
+                if (nome.isEmpty()) {
+                    nome = m.getName();
+                }
+                p.sendMessage(nome + ", ");
+            }
+
+        }
+
     }
 
     public boolean doSet(Player p, DisguiseData data, String key, String value) {
@@ -83,7 +121,6 @@ public class CmdDisguise implements CommandExecutor {
                                 if (e.name().equalsIgnoreCase(value)) {
                                     setSilently(m, data, e);
                                     return true;
-
                                 }
                             }
                             p.sendMessage("Valor inválido: " + values);
@@ -98,12 +135,31 @@ public class CmdDisguise implements CommandExecutor {
                                 p.sendMessage("Valor inválido Use true(1) false(0)");
                                 return true;
                             }
-
                             setSilently(m, data, b);
                             return true;
-
                         }
-
+                        if (parameterType == int.class || parameterType == Integer.class) {
+                            int i;
+                            try {
+                                i = Integer.valueOf(value);
+                            } catch (NumberFormatException ex) {
+                                p.sendMessage("Numero inválido!");
+                                return true;
+                            }
+                            setSilently(m, data, i);
+                            return true;
+                        }
+                        if (parameterType == byte.class || parameterType == Byte.class) {
+                            byte i;
+                            try {
+                                i = Byte.valueOf(value);
+                            } catch (NumberFormatException ex) {
+                                p.sendMessage("Numero inválido!");
+                                return false;
+                            }
+                            setSilently(m, data, i);
+                            return true;
+                        }
                     }
                     break;
                 }
@@ -145,7 +201,7 @@ public class CmdDisguise implements CommandExecutor {
             List<Method> superClassMethods = getAllMethodsInHierarchy(superClass);
             allMethods.addAll(superClassMethods);
         }
-        allMethods.addAll(Arrays.asList(declaredMethods));
+       // allMethods.addAll(Arrays.asList(declaredMethods));
         allMethods.addAll(Arrays.asList(methods));
         return allMethods;
     }

@@ -4,11 +4,10 @@ import me.feldmannjr.disguise.annotations.SetAnnotation;
 import me.feldmannjr.disguise.types.base.AgeableData;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Villager;
 
 public class DisguiseVillager extends AgeableData {
 
-    Villager.Profession prof = Villager.Profession.FARMER;
+    Profession prof = Profession.FARMER;
 
     public DisguiseVillager(Player p) {
         super(p);
@@ -19,13 +18,26 @@ public class DisguiseVillager extends AgeableData {
     }
 
     @SetAnnotation(nome = "profession")
-    public void setProfession(Villager.Profession prof) {
+    public void setProfession(Profession prof) {
         this.prof = prof;
-        watcher.add(16, prof.ordinal());
+        watcher.add(16, prof.id);
     }
 
-    public Villager.Profession getProfession() {
+    public Profession getProfession() {
         return prof;
     }
 
+    public static enum Profession {
+        FARMER(0),
+        LIBRARIAN(1),
+        PRIEST(2),
+        BLACKSMITH(3),
+        BUTCHER(4);
+
+        int id;
+
+        private Profession(int id) {
+            this.id = id;
+        }
+    }
 }
